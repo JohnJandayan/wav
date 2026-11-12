@@ -1,7 +1,7 @@
 import { useId, useState, type PointerEvent } from 'react';
 import { portfolioData as d, type PreviewKind } from '../data/portfolioData';
 import { useExperience } from '../hooks/Experience';
-import { AudioControl } from './AudioControl';
+import { AudioControl, AudioTimeline } from './AudioControl';
 import { Icon } from './Icon';
 export function Waveform() {
   const { active } = useExperience();
@@ -141,6 +141,7 @@ export function CampaignCurve() {
   );
 }
 export function PillarPreview({ kind }: { kind: PreviewKind }) {
+  const { hasAudio } = useExperience();
   if (kind === 'audio')
     return (
       <div className="preview preview-audio">
@@ -158,8 +159,11 @@ export function PillarPreview({ kind }: { kind: PreviewKind }) {
           </div>
         </div>
         <Waveform />
+        <AudioTimeline />
         <div className="preview-bottom">
-          <span className="small-mono">{d.previews.audio.signal}</span>
+          <span className="small-mono">
+            {hasAudio ? d.audio.showcase : d.previews.audio.signal}
+          </span>
           <AudioControl />
         </div>
       </div>

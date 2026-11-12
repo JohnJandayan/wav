@@ -40,7 +40,7 @@ Do not move personal copy into rendering components. Avoid adding a router, netw
 - `SectionId`: `home | about | skills | education | projects | certificates | contact`. `SectionInfo` maps stable IDs to labels, indices, eyebrows and titles. All section IDs and navigation records must agree.
 - `Category`: `All | Marketing & SEO | Audio & Branding | Operations`. Each `Project` uses a non-All category, unique ID, output number, title, provenance/type, role, scope, activities and `PreviewKind`.
 - `PreviewKind`: `audio | marketing | operations | copywriting`. The same preview component is reused in the hero dock and selected work.
-- `Credential`: unique ID, exact title, short title, type, owner-provided summary and nullable image URL. A record is not proof its document was verified.
+- `Credential`: unique ID, exact title, short title, type, summary, nullable image and original-document URLs, and optional issued/training/credential-ID details transcribed from the supplied document. A record or attached file is not proof of independent issuer verification.
 - `Inquiry`: name, email, subject and message strings. Validation errors are a partial field-to-message map. Subjects are allowlisted from central configuration.
 - Metrics retain owner-supplied values, labels and year qualifiers. Illustrative chart points are under `previews.marketing`, never mixed with reported metrics.
 

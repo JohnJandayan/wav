@@ -31,10 +31,6 @@ export function Home() {
         <span className="small-mono">{d.nav.signature}</span>
       </div>
       <div className="hero-content container">
-        <motion.div className="ethos-pill" {...reveal(0)}>
-          <span className="signal-dot" />
-          {d.hero.badge}
-        </motion.div>
         <h1 id="home-title">
           <motion.span {...reveal(0.08)}>{d.hero.lineOne}</motion.span>
           <motion.span className="headline-second" {...reveal(0.15)}>

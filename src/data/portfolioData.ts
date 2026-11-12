@@ -27,13 +27,17 @@ export interface Credential {
   type: string;
   summary: string;
   image: string | null;
+  document: string | null;
+  details?: { issued: string; training: string; credentialId: string };
 }
 
-export const PROFILE_IMAGE_URL: string | null = null;
+export const PROFILE_IMAGE_URL: string | null = '/images/profile.webp';
 export const PROFILE_PIC_URL = PROFILE_IMAGE_URL;
-export const CANVA_CERT_URL: string | null = null;
+export const CANVA_CERT_URL: string | null = '/certificates/marketing-with-canva.webp';
+export const CANVA_CERT_PDF_URL: string | null = '/certificates/marketing-with-canva.pdf';
 export const MUSIC_PORTFOLIO_URL: string | null = null;
-export const AUDIO_REEL_URL: string | null = null;
+export const AUDIO_REEL_URL: string | null = '/audio/pr6ve.mp3';
+export const AUDIO_TRACK_TITLE = 'pr6ve';
 
 interface PortfolioContract {
   sections: SectionInfo[];
@@ -112,7 +116,6 @@ export const portfolioData = {
     homeLabel: 'Thaddeus Campos — home',
   },
   hero: {
-    badge: 'All will be well.',
     lineOne: 'Marketing Strategy',
     lineTwo: 'at the',
     lineThree: 'Frequency of Culture.',
@@ -359,11 +362,11 @@ export const portfolioData = {
     outputLabel: 'Output',
     details: 'Inside the work',
     evidence:
-      'Work summaries provided by Thaddeus. Source artifacts and supporting links are not yet attached.',
+      'Work summaries provided by Thaddeus. The audio project includes a supplied track; additional campaign, academic, and operations artifacts are not yet attached.',
     musicCta: 'Launch Music Portfolio',
     musicFallback: 'Connect with zyun.wav',
     musicMissing:
-      'Full music portfolio link is not yet attached. Connect through the artist profile.',
+      'Full external music portfolio link is not yet attached. Listen to the supplied track here or connect through the artist profile.',
   },
   previews: {
     audio: {
@@ -417,12 +420,14 @@ export const portfolioData = {
   credentials: [
     {
       id: 'canva',
-      title: 'Canva Design School Certification',
-      shortTitle: 'Canva Design School',
-      type: 'Digital design credential',
+      title: 'Marketing with Canva — Canva Design School',
+      shortTitle: 'Marketing with Canva',
+      type: 'Course completion certificate',
       summary:
-        'Verified Digital Design Credential (owner-reported). Visual communication and digital design.',
+        'Completed the Marketing with Canva course, equivalent to 1 hour of training. The original certificate is attached for viewing.',
       image: CANVA_CERT_URL,
+      document: CANVA_CERT_PDF_URL,
+      details: { issued: 'November 10, 2026', training: '1 hour', credentialId: '8dcee9' },
     },
     {
       id: 'click-grow',
@@ -431,6 +436,7 @@ export const portfolioData = {
       type: 'Seminar & workshop completion',
       summary: 'Focused on content pillars, platform algorithms, and brand growth.',
       image: null,
+      document: null,
     },
     {
       id: 'search-sale',
@@ -439,6 +445,7 @@ export const portfolioData = {
       type: 'Seminar & workshop completion',
       summary: 'Focused on search intent, product copywriting, and conversion optimization.',
       image: null,
+      document: null,
     },
     {
       id: 'professional',
@@ -447,6 +454,7 @@ export const portfolioData = {
       type: 'Seminar & workshop completion',
       summary: 'Focused on personal equity, professional positioning, and digital architecture.',
       image: null,
+      document: null,
     },
   ],
   vault: {
@@ -459,7 +467,14 @@ export const portfolioData = {
     missing:
       'This credential is listed from owner-provided information. Its original document has not been attached for viewing or independent verification.',
     failed: 'This certificate image could not be loaded.',
-    provenance: 'Owner-reported credentials. Original documents are shown when supplied.',
+    provenance:
+      'Original Canva certificate attached. Other training entries are owner-reported; their documents are not yet supplied.',
+    attached: 'Document attached',
+    openPdf: 'Open original PDF',
+    pdfFallback: 'The preview is unavailable. Open the attached original PDF below.',
+    issued: 'Issued',
+    training: 'Training',
+    credentialId: 'Credential ID',
     document: 'Credential dossier',
     imageAlt: 'Certificate document for',
     loading: 'Loading certificate image',
@@ -529,14 +544,18 @@ export const portfolioData = {
   audio: {
     startDemo: 'Start visual demo',
     pauseDemo: 'Pause visual demo',
-    play: 'Play audio reel',
-    pause: 'Pause audio reel',
+    title: AUDIO_TRACK_TITLE,
+    showcase: 'Supplied track / zyun.wav',
+    play: `Play ${AUDIO_TRACK_TITLE}`,
+    pause: `Pause ${AUDIO_TRACK_TITLE}`,
+    seek: `Seek ${AUDIO_TRACK_TITLE}`,
+    unknownDuration: '--:--',
     demoNote: 'Silent visual demonstration. Audio reel not yet supplied.',
     failed: 'Audio could not be played. Try again or contact the artist.',
-    loading: 'Loading audio reel',
+    loading: `Loading ${AUDIO_TRACK_TITLE}`,
     running: 'Signal in motion',
     idle: 'Tune into the work',
-    ended: 'Audio reel ended',
+    ended: `${AUDIO_TRACK_TITLE} ended`,
   },
 } satisfies PortfolioContract & Record<string, unknown>;
 

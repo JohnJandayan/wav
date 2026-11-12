@@ -1,6 +1,21 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
+vi.mock('./data/portfolioData', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('./data/portfolioData')>();
+  return {
+    ...actual,
+    AUDIO_REEL_URL: null,
+    portfolioData: {
+      ...actual.portfolioData,
+      credentials: actual.portfolioData.credentials.map((credential) => ({
+        ...credential,
+        image: null,
+        document: null,
+      })),
+    },
+  };
+});
 import { Projects } from './sections/Projects';
 import { Certificates } from './sections/Certificates';
 import { Contact } from './sections/Contact';

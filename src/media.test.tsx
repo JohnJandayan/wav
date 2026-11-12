@@ -13,6 +13,7 @@ vi.mock('./data/portfolioData', async (importOriginal) => {
       credentials: actual.portfolioData.credentials.map((credential) => ({
         ...credential,
         image: '/test-certificate.webp',
+        document: null,
       })),
     },
   };
@@ -20,7 +21,7 @@ vi.mock('./data/portfolioData', async (importOriginal) => {
 import { portfolioData as d } from './data/portfolioData';
 import { Portrait } from './components/Portrait';
 import { Certificates } from './sections/Certificates';
-import { AudioControl } from './components/AudioControl';
+import { AudioControl, AudioTimeline } from './components/AudioControl';
 import { ExperienceProvider } from './hooks/Experience';
 
 describe('configured media states', () => {
@@ -98,5 +99,31 @@ describe('configured media states', () => {
       'aria-pressed',
       'false',
     );
+  });
+});
+
+describe('shared track timing', () => {
+  it('enables seeking after metadata and updates the shared clock', () => {
+    render(
+      <ExperienceProvider>
+        <AudioTimeline />
+      </ExperienceProvider>,
+    );
+    const audio = document.querySelector('audio')!;
+    const slider = screen.getByRole('slider', { name: d.audio.seek });
+    expect(slider).toBeDisabled();
+    Object.defineProperty(audio, 'duration', { configurable: true, value: 84 });
+    fireEvent.loadedMetadata(audio);
+    expect(slider).toBeEnabled();
+    expect(slider).toHaveAttribute('max', '84');
+    fireEvent.change(slider, { target: { value: '21' } });
+    expect(audio.currentTime).toBe(21);
+    expect(screen.getByText('0:21 / 1:24')).toBeVisible();
+    audio.currentTime = 36;
+    fireEvent.timeUpdate(audio);
+    expect(screen.getByText('0:36 / 1:24')).toBeVisible();
+    Object.defineProperty(audio, 'duration', { configurable: true, value: Infinity });
+    fireEvent.durationChange(audio);
+    expect(slider).toBeDisabled();
   });
 });

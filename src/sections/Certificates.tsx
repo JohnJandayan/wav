@@ -15,6 +15,7 @@ function CredentialDialog({
   const [failed, setFailed] = useState(false);
   const [loaded, setLoaded] = useState(false);
   const source = safeUrl(credential.image, 'asset');
+  const documentUrl = safeUrl(credential.document, 'asset');
   useEffect(() => {
     const trigger = document.activeElement as HTMLElement | null;
     const dialog = ref.current;
@@ -72,11 +73,29 @@ function CredentialDialog({
         </div>
         <h3 id="credential-title">{credential.title}</h3>
         <p id="credential-description">{credential.summary}</p>
+        {credential.details && (
+          <dl className="certificate-details">
+            <div>
+              <dt>{d.vault.issued}</dt>
+              <dd>{credential.details.issued}</dd>
+            </div>
+            <div>
+              <dt>{d.vault.training}</dt>
+              <dd>{credential.details.training}</dd>
+            </div>
+            <div>
+              <dt>{d.vault.credentialId}</dt>
+              <dd>{credential.details.credentialId}</dd>
+            </div>
+          </dl>
+        )}
         {source && !failed ? (
           <div className="certificate-image">
             {!loaded && <p role="status">{d.vault.loading}</p>}
             <img
               src={source}
+              width={1684}
+              height={1191}
               alt={`${d.vault.imageAlt} ${credential.title}`}
               onError={() => setFailed(true)}
               onLoad={() => setLoaded(true)}
@@ -90,11 +109,73 @@ function CredentialDialog({
               <i />
             </span>
             <strong>{failed ? d.vault.failed : d.vault.missingTitle}</strong>
-            <p>{d.vault.missing}</p>
+            <p>{documentUrl ? d.vault.pdfFallback : d.vault.missing}</p>
           </div>
+        )}
+        {documentUrl && (
+          <a
+            href={documentUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-link certificate-pdf-link"
+          >
+            {d.vault.openPdf}
+            <Icon name="external" size={16} />
+          </a>
         )}
       </div>
     </dialog>
+  );
+}
+function CredentialCard({
+  credential,
+  index,
+  onSelect,
+}: {
+  credential: Credential;
+  index: number;
+  onSelect: () => void;
+}) {
+  const [failed, setFailed] = useState(false);
+  const source = safeUrl(credential.image, 'asset');
+  return (
+    <button
+      className={`credential-card ${index === 0 ? 'credential-featured' : ''} ${source ? 'credential-with-image' : ''}`}
+      type="button"
+      onClick={onSelect}
+      aria-label={`${d.vault.view}: ${credential.title}`}
+    >
+      <div className="credential-top">
+        {source ? (
+          <span className="credential-attached">{d.vault.attached}</span>
+        ) : (
+          <span className="document-glyph" aria-hidden="true">
+            <i />
+            <i />
+            <i />
+          </span>
+        )}
+        <span className="small-mono">0{index + 1}</span>
+      </div>
+      {source && !failed && (
+        <img
+          className="credential-thumbnail"
+          src={source}
+          alt=""
+          width={1684}
+          height={1191}
+          loading="lazy"
+          onError={() => setFailed(true)}
+        />
+      )}
+      <span className="credential-type">{credential.type}</span>
+      <h3>{credential.shortTitle}</h3>
+      <p>{credential.title}</p>
+      <span className="credential-action">
+        {d.vault.view}
+        <Icon name="external" size={16} />
+      </span>
+    </button>
   );
 }
 export function Certificates() {
@@ -108,30 +189,13 @@ export function Certificates() {
     >
       <SectionHeading id="certificates" intro={d.vault.intro} />
       <div className="credential-grid">
-        {d.credentials.map((credential, i) => (
-          <button
-            className={`credential-card ${i === 0 ? 'credential-featured' : ''}`}
-            type="button"
+        {d.credentials.map((credential, index) => (
+          <CredentialCard
             key={credential.id}
-            onClick={() => setSelected(credential)}
-            aria-label={`${d.vault.view}: ${credential.title}`}
-          >
-            <div className="credential-top">
-              <span className="document-glyph" aria-hidden="true">
-                <i />
-                <i />
-                <i />
-              </span>
-              <span className="small-mono">0{i + 1}</span>
-            </div>
-            <span className="credential-type">{credential.type}</span>
-            <h3>{credential.shortTitle}</h3>
-            <p>{credential.title}</p>
-            <span className="credential-action">
-              {d.vault.view}
-              <Icon name="external" size={16} />
-            </span>
-          </button>
+            credential={credential}
+            index={index}
+            onSelect={() => setSelected(credential)}
+          />
         ))}
       </div>
       <p className="work-evidence">{d.vault.provenance}</p>

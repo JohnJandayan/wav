@@ -1,4 +1,6 @@
+import { useId } from 'react';
 import { portfolioData as d } from '../data/portfolioData';
+import { formatAudioTime } from '../lib/audio';
 import { useExperience } from '../hooks/Experience';
 import { Icon } from './Icon';
 export function Eq({ active = false, large = false }: { active?: boolean; large?: boolean }) {
@@ -60,13 +62,44 @@ export function AudioControl({
         )}
       </button>
       {orb && (
-        <p className="audio-caption">{hasAudio ? d.previews.audio.reel : d.audio.demoNote}</p>
+        <p className="audio-caption">
+          {hasAudio ? `${d.audio.title} / ${d.identity.artist}` : d.audio.demoNote}
+        </p>
       )}
       {!compact && audioMessage && (
         <p className="audio-status" role="status">
           {audioMessage}
         </p>
       )}
+    </div>
+  );
+}
+
+export function AudioTimeline() {
+  const { hasAudio, currentTime, duration, seekAudio } = useExperience();
+  const id = useId();
+  if (!hasAudio) return null;
+  const clock = `${formatAudioTime(currentTime)} / ${duration ? formatAudioTime(duration) : d.audio.unknownDuration}`;
+  return (
+    <div className="audio-timeline">
+      <div className="audio-clock">
+        <span>{d.audio.title}</span>
+        <span>{clock}</span>
+      </div>
+      <label className="sr-only" htmlFor={id}>
+        {d.audio.seek}
+      </label>
+      <input
+        id={id}
+        type="range"
+        min={0}
+        max={duration || 1}
+        step={0.1}
+        value={Math.min(currentTime, duration || 1)}
+        disabled={!duration}
+        aria-valuetext={clock}
+        onChange={(event) => seekAudio(Number(event.target.value))}
+      />
     </div>
   );
 }

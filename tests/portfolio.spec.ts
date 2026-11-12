@@ -11,6 +11,7 @@ test('all seven sections, navigation, metadata and production assets', async ({
 }) => {
   await page.setViewportSize({ width: 1440, height: 1000 });
   await expect(page).toHaveTitle(d.meta.title);
+  await expect(page.locator('#home .ethos-pill')).toHaveCount(0);
   for (const section of d.sections) {
     await expect(page.locator(`section#${section.id}`)).toBeAttached();
     await page
@@ -81,7 +82,15 @@ test('credential modal contains focus, closes on Escape, restores trigger', asyn
     await trigger.click();
     const dialog = page.getByRole('dialog');
     await expect(dialog).toBeVisible();
-    await expect(dialog.getByText(d.vault.missingTitle)).toBeVisible();
+    if (credential.image) {
+      await expect(dialog.getByRole('img')).toBeVisible();
+      await expect(dialog.getByRole('link', { name: d.vault.openPdf })).toHaveAttribute(
+        'href',
+        credential.document!,
+      );
+    } else {
+      await expect(dialog.getByText(d.vault.missingTitle)).toBeVisible();
+    }
     await expect(dialog.getByRole('button', { name: d.vault.close })).toBeFocused();
     await page.keyboard.press('Tab');
     expect(await dialog.evaluate((element) => element.contains(document.activeElement))).toBe(true);
@@ -90,7 +99,7 @@ test('credential modal contains focus, closes on Escape, restores trigger', asyn
     await expect(trigger).toBeFocused();
   }
 });
-test('audio demonstration, motion preference and academic disclosure', async ({ page }) => {
+test('real track playback, motion preference and academic disclosure', async ({ page }) => {
   await page.locator('.audio-orb').click();
   await expect(page.locator('.audio-orb')).toHaveAttribute('aria-pressed', 'true');
   await expect(page.locator('.audio-mini')).toHaveAttribute('aria-pressed', 'true');
@@ -211,4 +220,79 @@ test('mobile copy feedback stays in view and dismissing restores focus', async (
   await page.getByRole('button', { name: d.ui.close, exact: true }).click();
   await expect(page.getByText(d.contact.copied, { exact: true })).not.toBeVisible();
   await expect(trigger).toBeFocused();
+});
+
+for (const width of [390, 768, 1440, 1711]) {
+  test(`nav headings land close to the navbar at ${width}px`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 900 });
+    await page.evaluate(() => document.fonts.ready);
+    for (const section of d.sections.filter((section) => section.id !== 'home')) {
+      if (width < 961) await page.getByRole('button', { name: d.nav.menu }).click();
+      await page
+        .getByRole('navigation')
+        .getByRole('link', { name: section.label, exact: true })
+        .click();
+      await expect(page).toHaveURL(new RegExp(`#${section.id}$`));
+      const gap = await page.evaluate((id) => {
+        const heading = document.querySelector(`#${id} .section-heading`)!;
+        const nav = document.querySelector('.nav-bar')!;
+        return heading.getBoundingClientRect().top - nav.getBoundingClientRect().bottom;
+      }, section.id);
+      expect(gap).toBeGreaterThanOrEqual(14);
+      expect(gap).toBeLessThanOrEqual(24);
+    }
+    if (width === 1711) {
+      await page.getByRole('navigation').getByRole('link', { name: 'About', exact: true }).click();
+      await page.screenshot({ path: 'test-results/about-nav-desktop.png' });
+    }
+  });
+}
+
+test('supplied portrait, certificate image and original PDF load', async ({ page, request }) => {
+  await page.locator('#about').scrollIntoViewIfNeeded();
+  const portrait = page.locator('.portrait-large img');
+  await expect(portrait).toHaveAttribute('src', '/images/profile.webp');
+  await expect
+    .poll(() => portrait.evaluate((image) => (image as HTMLImageElement).naturalWidth))
+    .toBe(900);
+  const trigger = page.locator('.credential-card').first();
+  await trigger.click();
+  const dialog = page.getByRole('dialog');
+  const image = dialog.getByRole('img');
+  await expect
+    .poll(() => image.evaluate((element) => (element as HTMLImageElement).naturalWidth))
+    .toBe(1684);
+  await expect(dialog.getByText('November 10, 2026', { exact: true })).toBeVisible();
+  await expect(dialog.getByText('8dcee9', { exact: true })).toBeVisible();
+  const pdf = await request.get('/certificates/marketing-with-canva.pdf');
+  expect(pdf.status()).toBe(200);
+  expect(pdf.headers()['content-type']).toContain('application/pdf');
+  expect((await pdf.body()).subarray(0, 5).toString()).toBe('%PDF-');
+});
+
+test('the real song plays, seeks, and stays synchronized between controls', async ({ page }) => {
+  const audio = page.locator('audio');
+  await expect(audio).toHaveAttribute('src', '/audio/pr6ve.mp3');
+  expect(await audio.evaluate((element) => (element as HTMLAudioElement).paused)).toBe(true);
+  await page.locator('.audio-orb').click();
+  await expect
+    .poll(() => audio.evaluate((element) => (element as HTMLAudioElement).currentTime))
+    .toBeGreaterThan(0.1);
+  const duration = await audio.evaluate((element) => (element as HTMLAudioElement).duration);
+  expect(duration).toBeGreaterThan(83);
+  expect(duration).toBeLessThan(85);
+  await expect(page.locator('.audio-mini')).toHaveAttribute('aria-pressed', 'true');
+  await page.locator('.audio-mini').click();
+  await expect
+    .poll(() => audio.evaluate((element) => (element as HTMLAudioElement).paused))
+    .toBe(true);
+  const slider = page.locator('.dock-audio').getByRole('slider', { name: d.audio.seek });
+  await slider.fill('20');
+  expect(await audio.evaluate((element) => (element as HTMLAudioElement).currentTime)).toBeCloseTo(
+    20,
+    0,
+  );
+  await expect(
+    page.locator('.project-audio').getByRole('slider', { name: d.audio.seek }),
+  ).toHaveValue('20');
 });
